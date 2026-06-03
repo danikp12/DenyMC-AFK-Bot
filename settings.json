@@ -6,8 +6,8 @@
     "type": "offline"
   },
   "server": {
-    "ip": "OPDeny.aternos.me",
-    "port": 35058,
+    "ip": "DenyMC-Java.aternos.me",
+    "port": 58229,
     "version": "1.21.11",
     "try-creative": false
   },
