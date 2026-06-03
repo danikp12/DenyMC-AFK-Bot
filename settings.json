@@ -6,8 +6,8 @@
     "type": "offline"
   },
   "server": {
-    "ip": "denymc.minekeep.gg", 
-    "port": 25565, 
+    "ip": "denymc.falix.dev", 
+    "port": 28597, 
     "version": "1.21.1", 
     "try-creative": false
   },
