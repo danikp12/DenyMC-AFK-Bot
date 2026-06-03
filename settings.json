@@ -6,8 +6,8 @@
     "type": "offline"
   },
   "server": {
-    "ip": "denymc.minekeep.gg",
-    "port": 25565,
+    "ip": "OPDeny.aternos.me",
+    "port": 35058,
     "version": "1.21.11",
     "try-creative": false
   },
