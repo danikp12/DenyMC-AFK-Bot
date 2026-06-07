@@ -6,7 +6,7 @@
     "type": "offline"
   },
   "server": {
-    "ip": "DenyMC.aternos.me", 
+    "ip": "tonguefish.aternos.host", 
     "port": 27817, 
     "version": "1.21.1", 
     "try-creative": false
@@ -18,32 +18,33 @@
     "z": 0
   },
   "utils": {
-  "auto-auth": { 
-    "enabled": true, 
-    "password": "DenyMCAdminBot_07.06.2026" 
+    "auto-auth": { 
+      "enabled": true, 
+      "password": "DenyMCAdminBot_07.06.2026" 
+    },
+    "anti-afk": { 
+      "enabled": true, 
+      "sneak": true 
+    },
+    "chat-messages": {
+      "enabled": false,
+      "repeat": false,
+      "repeat-delay": 120,
+      "messages": []
+    },
+    "chat-log": true,
+    "auto-reconnect": true,
+    "auto-reconnect-delay": 2000,
+    "max-reconnect-delay": 120000
   },
-  "anti-afk": { 
-    "enabled": true, 
-    "sneak": true 
+  "modules": {
+    "avoidMobs": true,
+    "combat": true,
+    "beds": false,
+    "chat": false,
+    "console-commands": true
   },
-  "chat-messages": {
-    "enabled": false,
-    "repeat": false,
-    "repeat-delay": 120,
-    "messages": []
-  },
-  "chat-log": true,
-  "auto-reconnect": true,
-  "auto-reconnect-delay": 2000,
-  "max-reconnect-delay": 120000
-},
-"modules": {
-  "avoidMobs": true,
-  "combat": true,
-  "beds": false,
-  "chat": false,
-  "console-commands": true
-},
-"chat": { 
-  "respond": false 
+  "chat": { 
+    "respond": false 
+  }
 }
