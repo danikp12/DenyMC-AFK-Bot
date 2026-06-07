@@ -6,8 +6,8 @@
     "type": "offline"
   },
   "server": {
-    "ip": "denymc.falix.dev", 
-    "port": 28597, 
+    "ip": "DenyMC.aternos.me", 
+    "port": 27817, 
     "version": "1.21.1", 
     "try-creative": false
   },
@@ -18,70 +18,32 @@
     "z": 0
   },
   "utils": {
-    "auto-auth": {
-      "enabled": true,
-      "password": "chalol78"
-    },
-    "anti-afk": {
-      "enabled": true,
-      "sneak": true
-    },
-    "chat-messages": {
-      "enabled": true,
-      "repeat": true,
-      "repeat-delay": 120,
-      "messages": [
-        "I'm a regular player",
-        "Subscribe to DenyMC!",
-        "I like to play Minecraft!"
-      ]
-    },
-    "chat-log": true,
-    "auto-reconnect": true,
-    "auto-reconnect-delay": 2000,
-    "max-reconnect-delay": 120000
+  "auto-auth": { 
+    "enabled": true, 
+    "password": "chalol78" 
   },
-  "movement": {
-    "enabled": true,
-    "circle-walk": {
-      "enabled": true,
-      "radius": 4,
-      "speed": 3000
-    },
-    "look-around": {
-      "enabled": true,
-      "interval": 5000
-    },
-    "random-jump": {
-      "enabled": true,
-      "interval": 10000
-    }
+  "anti-afk": { 
+    "enabled": true, 
+    "sneak": true 
   },
-  "modules": {
-    "avoidMobs": true,
-    "combat": true,
-    "beds": false,
-    "chat": true,
-    "console-commands": true
-  },
-  "combat": {
-    "attack-mobs": true,
-    "auto-eat": true
-  },
-  "beds": {
-    "pick-up-day": false,
-    "place-night": false
-  },
-  "discord": {
+  "chat-messages": {
     "enabled": false,
-    "webhookUrl": "YOUR_DISCORD_WEBHOOK_URL_HERE",
-    "events": {
-      "connect": true,
-      "disconnect": true,
-      "chat": false
-    }
+    "repeat": false,
+    "repeat-delay": 120,
+    "messages": []
   },
-  "chat": {
-    "respond": true
-  }
+  "chat-log": true,
+  "auto-reconnect": true,
+  "auto-reconnect-delay": 2000,
+  "max-reconnect-delay": 120000
+},
+"modules": {
+  "avoidMobs": true,
+  "combat": true,
+  "beds": false,
+  "chat": false,
+  "console-commands": true
+},
+"chat": { 
+  "respond": false 
 }
