@@ -6,7 +6,7 @@
     "type": "offline"
   },
   "server": {
-    "ip": "chowchow.aternos.host", 
+    "ip": "DenyMC.aternos.me", 
     "port": 27817, 
     "version": "1.21.1", 
     "try-creative": false
