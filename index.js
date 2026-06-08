@@ -9,8 +9,8 @@ const express = require("express");
 const config = {
   host: 'DenyMC.aternos.me',
   port: 27817,
-  username: 'DeinBotName',     // <- ÄNDERN: Dein Wunschname für den Bot
-  password: 'DeinPasswort',    // <- ÄNDERN: Dein Server-Passwort für /login
+  username: 'DenyMC',     // <- ÄNDERN: Dein Wunschname für den Bot
+  password: 'DenyMCAdminBot_08.06.2026',    // <- ÄNDERN: Dein Server-Passwort für /login
   version: '1.21.1'
 };
 
