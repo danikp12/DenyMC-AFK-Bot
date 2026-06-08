@@ -6,7 +6,7 @@
     "type": "offline"
   },
   "server": {
-    "ip": "tonguefish.aternos.host", 
+    "ip": "chowchow.aternos.host", 
     "port": 27817, 
     "version": "1.21.1", 
     "try-creative": false
