@@ -1,133 +1,101 @@
-"use strict";
+const mineflayer = require('mineflayer');
+const { SocksClient } = require('socks');
+const express = require('express');
 
-const mineflayer = require("mineflayer");
-const express = require("express");
-
-// ============================================================
-// KONFIGURATION (Hier deine Daten eintragen)
-// ============================================================
-const config = {
-  host: 'denymc.opzonen.net',
-  port: 27817,
-  username: 'DenyMC',     // <- ÄNDERN: Dein Wunschname für den Bot
-  password: 'DenyMCAdminBot_08.06.2026',    // <- ÄNDERN: Dein Server-Passwort für /login
-  version: '1.21.1'
-};
-
-// ============================================================
-// EXPRESS SERVER (Hält Render.com aktiv)
-// ============================================================
+// --- 1. WEB SERVER FÜR RENDER.COM ---
+// Verhindert den Fehler, dass Render keinen lauschenden Port findet.
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
-let botState = {
-  connected: false,
-  uptime: "0s",
-  coords: "Warte auf Verbindung..."
-};
-
-let connectTime = Date.now();
-
-// Einfaches Dashboard für Render.com
 app.get('/', (req, res) => {
-  const currentUptime = botState.connected ? Math.floor((Date.now() - connectTime) / 1000) + "s" : "0s";
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Bot Dashboard</title>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: sans-serif; background: #0d1117; color: #e6edf3; text-align: center; padding: 50px; }
-          .card { background: #161b22; border: 1px solid #21262d; padding: 20px; border-radius: 10px; display: inline-block; min-width: 300px; }
-          .status { font-weight: bold; color: ${botState.connected ? '#3fb950' : '#f85149'}; }
-        </style>
-      </head>
-      <body>
-        <h1>Minecraft AFK Bot</h1>
-        <div class="card">
-          <p>Status: <span class="status">${botState.connected ? 'ONLINE' : 'OFFLINE'}</span></p>
-          <p>Uptime: <span>${currentUptime}</span></p>
-          <p>Position: <span>${botState.coords}</span></p>
-          <p>Server: <span>${config.host}:${config.port}</span></p>
-        </div>
-        <p style="font-size:12px;color:#8b949e;margin-top:20px;">Seite lädt sich nicht automatisch neu. Bitte manuell aktualisieren.</p>
-      </body>
-    </html>
-  `);
-});
-
-// Health-Check für Render
-app.get('/health', (req, res) => {
-  res.json({ status: botState.connected ? 'connected' : 'disconnected' });
+    res.send('AFK-Bot läuft stabil im Hintergrund!');
 });
 
 app.listen(PORT, () => {
-  console.log(`[Dashboard] Läuft auf Port ${PORT}`);
+    console.log(`[Dashboard] Webserver läuft erfolgreich auf Port ${PORT}`);
 });
 
-// ============================================================
-// MINEFLAYER MINECRAFT BOT
-// ============================================================
-let bot;
+// --- 2. KONFIGURATION (Hier anpassen) ---
+const MINECRAFT_SERVER = 'DenyMC.aternos.me';
+const MINECRAFT_PORT = 27817;
+const BOT_USERNAME = 'DenyMC'; // Wählen Sie den gewünschten In-Game Namen
 
-function createBot() {
-  console.log(`[Bot] Verbinde mit ${config.host}:${config.port}...`);
-  
-  bot = mineflayer.createBot({
-    host: config.host,
-    port: config.port,
-    username: config.username,
-    version: config.version
-  });
+// WICHTIG: Suchen Sie eine funktionierende SOCKS5-IP und tragen Sie diese hier ein!
+const PROXY_IP = '147.45.142.189'; // Nur ein Beispiel! Aktuelle IP von ProxyScrape/Spys.one holen
+const PROXY_PORT = 1080;          // Passenden Port eintragen (als reine Zahl)
 
-  bot.once('spawn', () => {
-    console.log(`[Bot] [+] Erfolgreich auf dem Server gespawnt!`);
-    botState.connected = true;
-    connectTime = Date.now();
+// --- 3. BOT LOGIK MIT PROXY-INTEGRATION ---
+function startBot() {
+    console.log(`[Bot] Verbinde mit ${MINECRAFT_SERVER}:${MINECRAFT_PORT} über Proxy ${PROXY_IP}:${PROXY_PORT}...`);
 
-    // Sende Login-Befehl nach 3 Sekunden
-    setTimeout(() => {
-      if (config.password) {
-        console.log(`[Auth] Sende Login-Befehl...`);
-        bot.chat(`/login ${config.password}`);
-      }
-    }, 3000);
+    const bot = mineflayer.createBot({
+        host: MINECRAFT_SERVER,
+        port: MINECRAFT_PORT,
+        username: BOT_USERNAME,
+        version: false, // Erkennt die Serverversion automatisch
+        
+        // Custom Verbindungs-Handler via SOCKS5 Proxy
+        connect: (client) => {
+            SocksClient.createConnection({
+                proxy: {
+                    host: PROXY_IP,
+                    port: PROXY_PORT,
+                    type: 5 // Typ 5 = SOCKS5 Proxy
+                },
+                command: 'connect',
+                destination: {
+                    host: MINECRAFT_SERVER,
+                    port: MINECRAFT_PORT
+                }
+            }, (err, info) => {
+                if (err) {
+                    console.log('[Proxy-Fehler]', err.message);
+                    console.log('[Bot] Proxy fehlgeschlagen. Versuche Neustart in 15 Sekunden...');
+                    setTimeout(startBot, 15000);
+                    return;
+                }
+                // Übergibt den getunnelten Socket an Mineflayer
+                client.setSocket(info.socket);
+                client.emit('connect');
+            });
+        }
+    });
 
-    // Aktualisiere die Koordinaten im Dashboard jede Sekunde
-    setInterval(() => {
-      if (bot && bot.entity) {
-        const p = bot.entity.position;
-        botState.coords = `X: ${Math.floor(p.x)} | Y: ${Math.floor(p.y)} | Z: ${Math.floor(p.z)}`;
-      }
-    }, 1000);
-  });
+    // Event: Erfolgreich auf dem Server eingeloggt
+    bot.on('login', () => {
+        console.log(`[Bot] Erfolgreich eingeloggt als ${bot.username}!`);
+    });
 
-  bot.on('message', (jsonMsg) => {
-    console.log(`[Chat] ${jsonMsg.toString()}`);
-  });
+    // Event: Bot spawnt in der Minecraft Welt
+    bot.on('spawn', () => {
+        console.log('[Bot] Im Spiel gespawnt. AFK-Modus aktiv.');
+        // Verhindert Rauswurf: Bot springt alle 45 Sekunden kurz hoch
+        setInterval(() => {
+            if (bot && bot.entity) {
+                bot.setControlState('jump', true);
+                setTimeout(() => bot.setControlState('jump', false), 500);
+            }
+        }, 45000);
+    });
 
-  bot.on('error', (err) => {
-    if (err.code === 'ECONNRESET') {
-      console.log(`[Bot] Verbindung vom Server abrupt geschlossen (ECONNRESET).`);
-    } else {
-      console.log(`[Bot] Fehler:`, err.message);
-    }
-  });
+    // Event: Chatnachrichten im Terminal anzeigen
+    bot.on('chat', (username, message) => {
+        if (username === bot.username) return;
+        console.log(`[Chat] <${username}> ${message}`);
+    });
 
-  bot.on('end', (reason) => {
-    console.log(`[Bot] Verbindung getrennt. Grund: ${reason}`);
-    botState.connected = false;
-    botState.coords = "Warte auf Verbindung...";
-    
-    const reconnectDelay = 15000; // 15 Sekunden warten vor Neustart
-    console.log(`[Bot] Versuche Neustart in ${reconnectDelay / 1000} Sekunden...`);
-    
-    setTimeout(() => {
-      createBot();
-    }, reconnectDelay);
-  });
+    // Event: Verbindung wurde getrennt oder weggestoßen (Auto-Reconnect)
+    bot.on('end', (reason) => {
+        console.log(`[Bot] Verbindung getrennt. Grund: ${reason}`);
+        console.log('[Bot] Starte automatischen reconnect in 15 Sekunden...');
+        setTimeout(startBot, 15000);
+    });
+
+    // Event: Fehlerbehandlung, um Abstürze der Render-App zu vermeiden
+    bot.on('error', (err) => {
+        console.log('[Bot-Fehler]', err.message);
+    });
 }
 
-// Bot starten
-createBot();
+// Bot das erste Mal starten
+startBot();
