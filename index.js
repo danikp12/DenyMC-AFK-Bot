@@ -7,7 +7,7 @@ const express = require("express");
 // KONFIGURATION (Hier deine Daten eintragen)
 // ============================================================
 const config = {
-  host: 'DenyMC.aternos.me',
+  host: 'denymc.opzonen.net',
   port: 27817,
   username: 'DenyMC',     // <- ÄNDERN: Dein Wunschname für den Bot
   password: 'DenyMCAdminBot_08.06.2026',    // <- ÄNDERN: Dein Server-Passwort für /login
