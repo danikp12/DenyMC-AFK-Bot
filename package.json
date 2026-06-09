@@ -1,18 +1,101 @@
-{
-  "name": "minecraft-afk-bot",
-  "version": "2.2",
-  "description": "Robust AFK bot for Minecraft servers with infinite uptime.",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "node --check index.js"
-  },
-  "author": "Lamgerr",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.1",
-    "minecraft-data": "^3.103.0",
-    "mineflayer": "^4.34.0",
-    "mineflayer-pathfinder": "^2.1.1"
-  }
+const mineflayer = require('mineflayer');
+const { SocksClient } = require('socks');
+const express = require('express');
+
+// --- 1. WEB SERVER FÜR RENDER.COM ---
+// Verhindert den Fehler, dass Render keinen lauschenden Port findet.
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+    res.send('AFK-Bot läuft stabil im Hintergrund!');
+});
+
+app.listen(PORT, () => {
+    console.log(`[Dashboard] Webserver läuft erfolgreich auf Port ${PORT}`);
+});
+
+// --- 2. KONFIGURATION (Hier anpassen) ---
+const MINECRAFT_SERVER = 'DenyMC.aternos.me';
+const MINECRAFT_PORT = 27817;
+const BOT_USERNAME = 'DenyMC_AFK_Bot'; // Wählen Sie den gewünschten In-Game Namen
+
+// WICHTIG: Suchen Sie eine funktionierende SOCKS5-IP und tragen Sie diese hier ein!
+const PROXY_IP = '185.220.101.5'; // Nur ein Beispiel! Aktuelle IP von ProxyScrape/Spys.one holen
+const PROXY_PORT = 9050;          // Passenden Port eintragen (als reine Zahl)
+
+// --- 3. BOT LOGIK MIT PROXY-INTEGRATION ---
+function startBot() {
+    console.log(`[Bot] Verbinde mit ${MINECRAFT_SERVER}:${MINECRAFT_PORT} über Proxy ${PROXY_IP}:${PROXY_PORT}...`);
+
+    const bot = mineflayer.createBot({
+        host: MINECRAFT_SERVER,
+        port: MINECRAFT_PORT,
+        username: BOT_USERNAME,
+        version: false, // Erkennt die Serverversion automatisch
+        
+        // Custom Verbindungs-Handler via SOCKS5 Proxy
+        connect: (client) => {
+            SocksClient.createConnection({
+                proxy: {
+                    host: PROXY_IP,
+                    port: PROXY_PORT,
+                    type: 5 // Typ 5 = SOCKS5 Proxy
+                },
+                command: 'connect',
+                destination: {
+                    host: MINECRAFT_SERVER,
+                    port: MINECRAFT_PORT
+                }
+            }, (err, info) => {
+                if (err) {
+                    console.log('[Proxy-Fehler]', err.message);
+                    console.log('[Bot] Proxy fehlgeschlagen. Versuche Neustart in 15 Sekunden...');
+                    setTimeout(startBot, 15000);
+                    return;
+                }
+                // Übergibt den getunnelten Socket an Mineflayer
+                client.setSocket(info.socket);
+                client.emit('connect');
+            });
+        }
+    });
+
+    // Event: Erfolgreich auf dem Server eingeloggt
+    bot.on('login', () => {
+        console.log(`[Bot] Erfolgreich eingeloggt als ${bot.username}!`);
+    });
+
+    // Event: Bot spawnt in der Minecraft Welt
+    bot.on('spawn', () => {
+        console.log('[Bot] Im Spiel gespawnt. AFK-Modus aktiv.');
+        // Verhindert Rauswurf: Bot springt alle 45 Sekunden kurz hoch
+        setInterval(() => {
+            if (bot && bot.entity) {
+                bot.setControlState('jump', true);
+                setTimeout(() => bot.setControlState('jump', false), 500);
+            }
+        }, 45000);
+    });
+
+    // Event: Chatnachrichten im Terminal anzeigen
+    bot.on('chat', (username, message) => {
+        if (username === bot.username) return;
+        console.log(`[Chat] <${username}> ${message}`);
+    });
+
+    // Event: Verbindung wurde getrennt oder weggestoßen (Auto-Reconnect)
+    bot.on('end', (reason) => {
+        console.log(`[Bot] Verbindung getrennt. Grund: ${reason}`);
+        console.log('[Bot] Starte automatischen reconnect in 15 Sekunden...');
+        setTimeout(startBot, 15000);
+    });
+
+    // Event: Fehlerbehandlung, um Abstürze der Render-App zu vermeiden
+    bot.on('error', (err) => {
+        console.log('[Bot-Fehler]', err.message);
+    });
 }
+
+// Bot das erste Mal starten
+startBot();
