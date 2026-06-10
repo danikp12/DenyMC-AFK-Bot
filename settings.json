@@ -6,9 +6,9 @@
     "type": "offline"
   },
   "server": {
-    "ip": "DenyMC.aternos.me", 
-    "port": 27817, 
-    "version": "1.21.1", 
+    "ip": "denymc.minekeep.gg", 
+    "port": 25565, 
+    "version": "1.21.11", 
     "try-creative": false
   },
   "position": {
