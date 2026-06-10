@@ -1,101 +1,63 @@
 const mineflayer = require('mineflayer');
-const { SocksClient } = require('socks');
 const express = require('express');
 
 // --- 1. WEB SERVER FÜR RENDER.COM ---
-// Verhindert den Fehler, dass Render keinen lauschenden Port findet.
+// Sorgt dafür, dass Ihre App auf Render.com 24/7 online bleibt
 const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.get('/', (req, res) => {
-    res.send('AFK-Bot läuft stabil im Hintergrund!');
+    res.send('MineKeep AFK-Bot läuft stabil im Hintergrund!');
 });
 
 app.listen(PORT, () => {
     console.log(`[Dashboard] Webserver läuft erfolgreich auf Port ${PORT}`);
 });
 
-// --- 2. KONFIGURATION (Hier anpassen) ---
-const MINECRAFT_SERVER = 'DenyMC.aternos.me';
-const MINECRAFT_PORT = 27817;
-const BOT_USERNAME = 'DenyMC'; // Wählen Sie den gewünschten In-Game Namen
+// --- 2. KONFIGURATION (Hier Ihre MineKeep-Daten eintragen!) ---
+const MINECRAFT_SERVER = 'denymc.minekeep.gg'; // <-- HIER bearbeiten: Ihre genaue MineKeep-Adresse eintragen
+const MINECRAFT_PORT = 25565;                      // Der Standardport für MineKeep (So lassen!)
+const BOT_USERNAME = 'DenyMC';                     // Der gewünschte Name des Bots im Spiel
 
-// WICHTIG: Suchen Sie eine funktionierende SOCKS5-IP und tragen Sie diese hier ein!
-const PROXY_IP = '147.45.142.189'; // Nur ein Beispiel! Aktuelle IP von ProxyScrape/Spys.one holen
-const PROXY_PORT = 1080;          // Passenden Port eintragen (als reine Zahl)
-
-// --- 3. BOT LOGIK MIT PROXY-INTEGRATION ---
+// --- 3. BOT LOGIK (Direkte und stabile Verbindung) ---
 function startBot() {
-    console.log(`[Bot] Verbinde mit ${MINECRAFT_SERVER}:${MINECRAFT_PORT} über Proxy ${PROXY_IP}:${PROXY_PORT}...`);
+    console.log(`[Bot] Verbinde direkt mit ${MINECRAFT_SERVER}...`);
 
     const bot = mineflayer.createBot({
         host: MINECRAFT_SERVER,
         port: MINECRAFT_PORT,
         username: BOT_USERNAME,
-        version: false, // Erkennt die Serverversion automatisch
-        
-        // Custom Verbindungs-Handler via SOCKS5 Proxy
-        connect: (client) => {
-            SocksClient.createConnection({
-                proxy: {
-                    host: PROXY_IP,
-                    port: PROXY_PORT,
-                    type: 5 // Typ 5 = SOCKS5 Proxy
-                },
-                command: 'connect',
-                destination: {
-                    host: MINECRAFT_SERVER,
-                    port: MINECRAFT_PORT
-                }
-            }, (err, info) => {
-                if (err) {
-                    console.log('[Proxy-Fehler]', err.message);
-                    console.log('[Bot] Proxy fehlgeschlagen. Versuche Neustart in 15 Sekunden...');
-                    setTimeout(startBot, 15000);
-                    return;
-                }
-                // Übergibt den getunnelten Socket an Mineflayer
-                client.setSocket(info.socket);
-                client.emit('connect');
-            });
-        }
+        version: false // Erkennt die Minecraft-Version von MineKeep automatisch
     });
 
     // Event: Erfolgreich auf dem Server eingeloggt
     bot.on('login', () => {
-        console.log(`[Bot] Erfolgreich eingeloggt als ${bot.username}!`);
+        console.log(`[Bot] Erfolgreich auf MineKeep eingeloggt als ${bot.username}!`);
     });
 
-    // Event: Bot spawnt in der Minecraft Welt
+    // Event: Bot spawnt in der Welt & springt gegen den AFK-Kick
     bot.on('spawn', () => {
-        console.log('[Bot] Im Spiel gespawnt. AFK-Modus aktiv.');
-        // Verhindert Rauswurf: Bot springt alle 45 Sekunden kurz hoch
+        console.log('[Bot] Im Spiel gespawnt. Anti-AFK aktiv.');
         setInterval(() => {
             if (bot && bot.entity) {
                 bot.setControlState('jump', true);
                 setTimeout(() => bot.setControlState('jump', false), 500);
             }
-        }, 45000);
+        }, 45000); // Springt alle 45 Sekunden kurz hoch
     });
 
-    // Event: Chatnachrichten im Terminal anzeigen
-    bot.on('chat', (username, message) => {
-        if (username === bot.username) return;
-        console.log(`[Chat] <${username}> ${message}`);
-    });
-
-    // Event: Verbindung wurde getrennt oder weggestoßen (Auto-Reconnect)
+    // Event: Verbindung verloren (Automatischer Reconnect)
     bot.on('end', (reason) => {
         console.log(`[Bot] Verbindung getrennt. Grund: ${reason}`);
-        console.log('[Bot] Starte automatischen reconnect in 15 Sekunden...');
+        console.log('[Bot] Starte automatischen Reconnect in 15 Sekunden...');
         setTimeout(startBot, 15000);
     });
 
-    // Event: Fehlerbehandlung, um Abstürze der Render-App zu vermeiden
+    // Event: Fehler abfangen, damit die App nicht abstürzt
     bot.on('error', (err) => {
         console.log('[Bot-Fehler]', err.message);
     });
 }
 
-// Bot das erste Mal starten
+// Bot starten
 startBot();
