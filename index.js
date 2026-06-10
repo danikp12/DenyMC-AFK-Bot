@@ -14,20 +14,20 @@ app.listen(PORT, () => {
     console.log(`[Dashboard] Webserver läuft erfolgreich auf Port ${PORT}`);
 });
 
-// --- 2. KONFIGURATION (Hier Ihre MineKeep-Daten eintragen!) ---
-const MINECRAFT_SERVER = 'denymc.minekeep.gg'; // <-- HIER bearbeiten: Ihre genaue MineKeep-Adresse eintragen
-const MINECRAFT_PORT = 25565;                      // Der Standardport für MineKeep (So lassen!)
-const BOT_USERNAME = 'DenyMC';                     // Der gewünschte Name des Bots im Spiel
+// --- 2. KONFIGURATION ---
+const MINECRAFT_SERVER = 'denymc.minekeep.gg'; 
+const MINECRAFT_PORT = 25565;                      
+const BOT_USERNAME = 'DenyMC';                     
 
 // --- 3. BOT LOGIK (Direkte und stabile Verbindung) ---
 function startBot() {
-    console.log(`[Bot] Verbinde direkt mit ${MINECRAFT_SERVER}...`);
+    console.log(`[Bot] Verbinde direkt mit ${MINECRAFT_SERVER} (Version 1.21.11)...`);
 
     const bot = mineflayer.createBot({
         host: MINECRAFT_SERVER,
         port: MINECRAFT_PORT,
         username: BOT_USERNAME,
-        version: false // Erkennt die Minecraft-Version von MineKeep automatisch
+        version: '1.21.11' // Fest vorgegeben, damit der Login sofort klappt!
     });
 
     // Event: Erfolgreich auf dem Server eingeloggt
